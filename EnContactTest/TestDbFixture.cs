@@ -14,12 +14,14 @@ namespace EnContactTest
 
         public TestDbFixture()
         {
+            // var guid = Guid.NewGuid().ToString();
             var options = new DbContextOptionsBuilder<EnContactContext>()
-                .UseInMemoryDatabase(databaseName: "EnContactTESTS")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            //Config.ConnectionString = "DataSource=EnContactTESTS;";
-            Db = new EnContactContext(options);
+            //Config.ConnectionString = $"DataSource={guid};";
+            Db = new EnContactContext(options);            
+            Db.Database.EnsureCreated();
 
             Company[] companies = new Company[]
             {
@@ -56,6 +58,7 @@ namespace EnContactTest
 
         public void Dispose()
         {
+            Db.Database.EnsureDeleted();
             Db.Dispose();
         }
     }
