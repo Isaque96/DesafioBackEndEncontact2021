@@ -11,7 +11,7 @@ namespace EnContactTest
         [Theory]
         [InlineData(1)]
         [InlineData(2)]
-        public async Task ReceberTodosContatosDeUmaEmpresa_NãoVoltaNulo(int id)
+        public async Task ReceberTodosContatosDeUmaEmpresa_NÃ£oVoltaNulo(int id)
         {
             // Arrange
             var context = fixture.Db;
@@ -23,11 +23,10 @@ namespace EnContactTest
             
             // Assert
             Assert.NotNull(result);
-            fixture.Dispose();
         }
 
         [Fact]
-        public async Task LerArquivoCSVESalvarNoBanco_NãoVoltaNulo()
+        public async Task LerArquivoCSVESalvarNoBanco_NÃ£oVoltaNulo()
         {
             // Arrange
             var context = fixture.Db;
@@ -35,17 +34,16 @@ namespace EnContactTest
             // Act
             var repository = new ContactRepository(context);
 
-            var result = await repository.GetCSVFile(@"D:\Desktop\Teste\DesafioBackEndEncontact2021\testsContact.csv");
+            var result = await repository.GetCSVFile(@"..\..\..\..\testsContact.csv");
 
             // Assert
             Assert.NotNull(result);
-            fixture.Dispose();
         }
 
         [Theory]
         [InlineData("Company", 0, 2)]
         [InlineData("teste", 0, 2)]
-        public async Task PesquisarPorNomeEmQualquerCampo_NãoVoltaNulo(string something, int skip, int take)
+        public async Task PesquisarPorNomeEmQualquerCampo_NÃ£oVoltaNulo(string something, int skip, int take)
         {
             // Arrange
             var context = fixture.Db;
@@ -57,7 +55,6 @@ namespace EnContactTest
 
             // Assert
             Assert.NotNull(result);
-            fixture.Dispose();
         }
     }
 }
