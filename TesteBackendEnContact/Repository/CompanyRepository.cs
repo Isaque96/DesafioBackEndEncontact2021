@@ -1,9 +1,8 @@
 ﻿using Dapper;
-using Dapper.Contrib.Extensions;
-using Microsoft.Data.Sqlite;
+using Npgsql;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TesteBackendEnContact.Core.Domain.ContactBook.Company;
 using TesteBackendEnContact.Core.Interface.ContactBook.Company;
@@ -23,69 +22,121 @@ namespace TesteBackendEnContact.Repository
 
         public async Task<ICompany> SaveAsync(ICompany company)
         {
-            using var connection = new SqliteConnection(databaseConfig.ConnectionString);
-            var dao = new CompanyDao(company);
+            try
+            {
+                using var connection = new NpgsqlConnection(databaseConfig.ConnectionString);
 
-            if (dao.Id == 0)
-                dao.Id = await connection.InsertAsync(dao);
-            else
-                await connection.UpdateAsync(dao);
+                string verifyContactBook = "select * from \"ContactBook\" where \"Id\" = {0};";
+                verifyContactBook = String.Format(verifyContactBook, company.ContactBookId);
+                var verified = await connection.QueryAsync(verifyContactBook);
 
-            return dao.Export();
+                if (verified.Any())
+                {
+                    string insert = "insert into \"Company\"(\"ContactBookId\", \"Name\") values ({0}, '{1}') returning *;";
+                    insert = String.Format(insert, company.ContactBookId, company.Name);
+                    var inserted = await connection.QuerySingleAsync<Company>(insert);
+
+                    return inserted;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }            
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<ICompany> EditAsync(int id, ICompany company)
         {
-            using var connection = new SqliteConnection(databaseConfig.ConnectionString);
-            using var transaction = connection.BeginTransaction();
+            try
+            {
+                using var connection = new NpgsqlConnection(databaseConfig.ConnectionString);
 
-            var sql = new StringBuilder();
-            sql.AppendLine("DELETE FROM Company WHERE Id = @id;");
-            sql.AppendLine("UPDATE Contact SET CompanyId = null WHERE CompanyId = @id;");
+                var oldCompany = await GetAsync(id);
 
-            await connection.ExecuteAsync(sql.ToString(), new { id }, transaction);
+                string editedCommand = "update \"Company\" set \"Name\" = '{0}' WHERE \"Id\" = {1} and \"ContactBookId\" = {2} returning *;";
+                editedCommand = String.Format(editedCommand, company.Name ?? oldCompany.Name, oldCompany.Id, oldCompany.ContactBookId);
+
+                var result = await connection.QuerySingleOrDefaultAsync<Company>(editedCommand);
+
+                if (result != null)
+                {
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            try
+            {
+                using var connection = new NpgsqlConnection(databaseConfig.ConnectionString);
+
+                string deleteCommand = "delete from \"Company\" where \"Id\" = {0};";
+                deleteCommand = String.Format(deleteCommand, id);
+
+                var deleted = await connection.ExecuteAsync(deleteCommand);
+
+                if (deleted == 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }                        
         }
 
         public async Task<IEnumerable<ICompany>> GetAllAsync()
         {
-            using var connection = new SqliteConnection(databaseConfig.ConnectionString);
+            try
+            {
+                using var connection = new NpgsqlConnection(databaseConfig.ConnectionString);
 
-            var query = "SELECT * FROM Company";
-            var result = await connection.QueryAsync<CompanyDao>(query);
+                var query = "select * from \"Company\";";
+                var result = await connection.QueryAsync<Company>(query);
 
-            return result?.Select(item => item.Export());
+                return result;
+            }
+            catch (Exception)
+            {
+                return null;
+            }            
         }
 
         public async Task<ICompany> GetAsync(int id)
         {
-            using var connection = new SqliteConnection(databaseConfig.ConnectionString);
+            try
+            {
+                using var connection = new NpgsqlConnection(databaseConfig.ConnectionString);
 
-            var query = "SELECT * FROM Conpany where Id = @id";
-            var result = await connection.QuerySingleOrDefaultAsync<CompanyDao>(query, new { id });
+                var query = "select * from \"Company\" where \"Id\"= {0};";
+                query = String.Format(query, id);
 
-            return result?.Export();
+                var result = await connection.QuerySingleOrDefaultAsync<Company>(query);
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return null;
+            }           
         }
-    }
-
-    [Table("Company")]
-    public class CompanyDao : ICompany
-    {
-        [Key]
-        public int Id { get; set; }
-        public int ContactBookId { get; set; }
-        public string Name { get; set; }
-
-        public CompanyDao()
-        {
-        }
-
-        public CompanyDao(ICompany company)
-        {
-            Id = company.Id;
-            ContactBookId = company.ContactBookId;
-            Name = company.Name;
-        }
-
-        public ICompany Export() => new Company(Id, ContactBookId, Name);
     }
 }

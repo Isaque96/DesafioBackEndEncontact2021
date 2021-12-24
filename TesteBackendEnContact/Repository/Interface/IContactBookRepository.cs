@@ -7,8 +7,10 @@ namespace TesteBackendEnContact.Repository.Interface
     public interface IContactBookRepository
     {
         Task<IContactBook> SaveAsync(IContactBook contactBook);
-        Task DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id);
+        Task<IContactBook> EditAsync(int id, IContactBook contactBook);
         Task<IEnumerable<IContactBook>> GetAllAsync();
         Task<IContactBook> GetAsync(int id);
+        Task<bool> ContactsCSV(int id, string path);
     }
 }

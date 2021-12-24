@@ -8,6 +8,12 @@ namespace TesteBackendEnContact.Core.Domain.ContactBook.Company
         public int ContactBookId { get; private set; }
         public string Name { get; private set; }
 
+        public Company(int contactBookId, string name)
+        {
+            ContactBookId = contactBookId;
+            Name = name;
+        }
+
         public Company(int id, int contactBookId, string name)
         {
             Id = id;

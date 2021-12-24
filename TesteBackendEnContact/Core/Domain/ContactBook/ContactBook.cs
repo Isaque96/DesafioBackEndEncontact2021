@@ -7,6 +7,11 @@ namespace TesteBackendEnContact.Core.Domain.ContactBook
         public int Id { get;  set; }
         public string Name { get;  set; }
 
+        public ContactBook(string name)
+        {
+            Name = name;
+        }
+
         public ContactBook(int id, string name)
         {
             Id = id;
