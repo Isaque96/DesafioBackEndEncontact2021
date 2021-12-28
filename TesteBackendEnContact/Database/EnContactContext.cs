@@ -26,7 +26,7 @@ namespace TesteBackendEnContact.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=teste;User Id=postgres;Password=153624;");                
+                optionsBuilder.UseNpgsql();                
             }
         }
 
